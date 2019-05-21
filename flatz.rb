@@ -16,28 +16,13 @@ input = ARGV[0]
 conditions = [
     [[1], [[[[[1]]]]]],
     [[1, 2, 3, 4], [1, 2, 3, 4]],
+    [[-1, 0, 1, 2, 3, 4], [-1, 0, 1, 2, 3, 4]],
     [[1, 2, 3, 4], [1, [2, [3], 4]]],
     [[1, 2, 3, 4, 5, 6, 7, 8], [1, 2, [3, 4], 5, [6, 7, 8]]],
     [[1, 2, 3, 4, 5, 6, 7, 8], [[1, 2, [3, 4], 5, [6, 7, 8]]]],
     [[1, 2, 3, 4, 5], [[1], [2], [[3], [4, 5]]]],
     [nil, nil]
   ]
-
-def flatz(arr)
-  return arr if arr.nil?
-
-  result = []
-
-  arr.each do |element|
-    if element.is_a?(Array)
-      result.concat(flatz(element))
-    else
-      result << element
-    end
-  end
-
-  result
-end
 
 def do_test(expected, actual)
   return if expected.nil? && actual.nil?
@@ -53,7 +38,37 @@ def do_test(expected, actual)
   end
 end
 
-def timed(&block)
+def flatz(arr)
+    return arr if arr.nil?
+  
+    result = []
+  
+    arr.each do |element|
+      if element.is_a?(Array)
+        result.concat(flatz(element))
+      else
+        result << element
+      end
+    end
+  
+    result
+  end
+  
+  def scan(str)
+    result = []
+
+    str.scan(/((-?\d+)|(\[(.+)\]))/).each do |match|
+        if match[1]
+            result << match[1].to_i
+        elsif match[3]
+            result << scan(match[3])
+        end   
+    end
+
+    result
+  end   
+
+  def timed(&block)
   start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
   block.call
   finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -79,5 +94,7 @@ end
 if input == 'test'
   test(conditions)
 else
-  flatz(scan(input))
+  parsed = scan(input)
+  result = flatz(parsed)
+  puts result.to_s
 end
