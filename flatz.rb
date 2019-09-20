@@ -15,10 +15,12 @@ input = ARGV[0]
 
 conditions = [
   [[1], [[[[[1]]]]]],
+  [[-1, 0, 1, 2, 3], '[-1, 0, 1, 2, 3]'],
   [[1, 2, 3, 4], [1, 2, 3, 4]],
   [[-1, 0, 1, 2, 3, 4], [-1, 0, 1, 2, 3, 4]],
   [[1, 2, 3, 4], [1, [2, [3], 4]]],
   [[1, 2, 3, 4, 5, 6, 7, 8], [1, 2, [3, 4], 5, [6, 7, 8]]],
+  [[1, 2, 3, 4, 5, 6, 7, 8], '[1, 2, [3, 4], 5, [6, 7, 8]]'],
   [[1, 2, 3, 4, 5, 6, 7, 8], [[1, 2, [3, 4], 5, [6, 7, 8]]]],
   [[1, 2, 3, 4, 5], [[1], [2], [[3], [4, 5]]]],
   [nil, nil]
@@ -38,7 +40,7 @@ def do_test(expected, actual)
   end
 end
 
-def flatz(arr)
+def flatz_array(arr)
   return arr if arr.nil?
 
   result = []
@@ -52,6 +54,22 @@ def flatz(arr)
   end
 
   result
+end
+
+def flatz_string(str)
+    str.gsub(/\[/, '').gsub(/\]/, '').split(',').collect{ |el| el.to_i }
+end
+
+def flatz(input)
+    if input.is_a?(String)
+        flatz_string(input)
+    elsif input.is_a?(Array)
+        flatz_array(input)
+    elsif input.nil?
+        return nil
+    else
+        throw "Can only flatten nested arrays in a native Array or String format."
+    end
 end
 
 def scan(str)
@@ -88,13 +106,19 @@ def test(conditions)
     do_test(big, flatz(big))
   end
 
+  big_string = big.to_s
+
+  puts format(' [o] Testing array of size %<size>d as String', size: big.size)
+  timed do
+    do_test(big, flatz(big_string))
+  end
+
   puts " [o] #{Time.now} - Done."
 end
 
 if input == 'test'
   test(conditions)
 else
-  parsed = scan(input)
-  result = flatz(parsed)
-  puts result.to_s
+  res = flatz(input)
+  puts res.to_s
 end
